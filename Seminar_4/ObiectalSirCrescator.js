@@ -6,7 +6,7 @@ class Stream {
   constructor(value, nextValue) {
     this.#value = value;
     this.#nextvalue = nextValue;
-    Stream.#count++;
+    Stream.count++;
   }
 
   get value() {
@@ -19,7 +19,7 @@ class Stream {
   }
 
   static get count() {
-    return Stream.#count;
+    return Stream.count;
   }
 }
 
