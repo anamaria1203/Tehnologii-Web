@@ -32,3 +32,19 @@ const port = 8000;
 app.listen(port, () => {
   console.log(`API is running on http://localhost:${port}`);
 });
+
+router.route("/getList/:id").get((req, res) => {
+  const id = Number(req.params.id);
+
+  if (Number.isNaN(id)) {
+    return res.status(400).json({ error: "Invalid id" });
+  }
+
+  const item = array.find((el) => el.id === id);
+
+  if (!item) {
+    return res.status(404).json({ error: "Not found" });
+  }
+
+  res.json(item);
+});
