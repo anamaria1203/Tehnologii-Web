@@ -10,6 +10,7 @@
   "keywords": [],
   "author": "Ives van Hoorne",
   "license": "MIT",
-  "devDependencies": {},
-  "dependencies": {}
+  "dependencies": {
+    "crypto-js": "^4.2.0"
+  }
 }
