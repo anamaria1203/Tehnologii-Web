@@ -11,6 +11,9 @@
   "author": "Ives van Hoorne",
   "license": "MIT",
   "dependencies": {
-    "crypto-js": "^4.2.0"
+    "body-parser": "^2.2.0",
+    "cors": "^2.8.5",
+    "crypto-js": "^4.2.0",
+    "express": "^5.1.0"
   }
 }
