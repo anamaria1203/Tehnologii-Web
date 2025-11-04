@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ro">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Agenda</title>
+    <style>
+      body {
+        font: 16px/1.4 system-ui, sans-serif;
+        padding: 24px;
+      }
+      h1 {
+        margin-top: 0;
+      }
+      form {
+        display: grid;
+        gap: 8px;
+        max-width: 420px;
+        margin-bottom: 16px;
+      }
+      label {
+        display: grid;
+        gap: 4px;
+      }
+      input {
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+      }
+      button {
+        padding: 8px 12px;
+        border: 0;
+        border-radius: 6px;
+        background: #0a7;
+        color: #fff;
+        cursor: pointer;
+      }
+      button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        max-width: 620px;
+      }
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 8px;
+      }
+      th {
+        background: #f5f5f5;
+        text-align: left;
+      }
+      .actions button {
+        background: #d33;
+      }
+      .msg {
+        color: #d33;
+        margin: 6px 0 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Agenda</h1>
+
+    <form id="contactForm">
+      <label>
+        Nume
+        <input id="nameInput" type="text" placeholder="Ion Popescu" required />
+      </label>
+      <label>
+        Telefon
+        <input id="phoneInput" type="tel" placeholder="07xxxxxxxx" required />
+      </label>
+      <button type="submit">Adaugă contact</button>
+      <div id="msg" class="msg" hidden></div>
+    </form>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Nume</th>
+          <th>Telefon</th>
+          <th style="width: 110px">Acțiuni</th>
+        </tr>
+      </thead>
+      <tbody id="contactsBody"></tbody>
+    </table>
+
+    <script>
+      window.onload = () => {
+        const form = document.getElementById("contactForm");
+        const nameEl = document.getElementById("nameInput");
+        const phoneEl = document.getElementById("phoneInput");
+        const tbody = document.getElementById("contactsBody");
+        const msgEl = document.getElementById("msg");
+
+        const contacts = [
+          { name: "Ionuț Ionescu", phone: "0712345678" },
+          { name: "Ana Pop", phone: "0722333444" },
+        ];
+
+        function addRow({ name, phone }) {
+          const tr = document.createElement("tr");
+
+          const tdName = document.createElement("td");
+          tdName.textContent = name;
+
+          const tdPhone = document.createElement("td");
+          tdPhone.textContent = phone;
+
+          const tdActions = document.createElement("td");
+          tdActions.className = "actions";
+          const delBtn = document.createElement("button");
+          delBtn.type = "button";
+          delBtn.textContent = "Șterge";
+          delBtn.onclick = () => tr.remove();
+
+          tdActions.appendChild(delBtn);
+
+          tr.appendChild(tdName);
+          tr.appendChild(tdPhone);
+          tr.appendChild(tdActions);
+          tbody.appendChild(tr);
+        }
+
+        contacts.forEach(addRow);
+
+        function isValidPhone(p) {
+          return /^[0-9]{9,15}$/.test(p);
+        }
+
+        form.onsubmit = (e) => {
+          e.preventDefault();
+          msgEl.hidden = true;
+
+          const name = nameEl.value.trim();
+          const phone = phoneEl.value.trim();
+
+          if (!name || !phone) {
+            msgEl.textContent = "Completează ambele câmpuri.";
+            msgEl.hidden = false;
+            return;
+          }
+          if (!isValidPhone(phone)) {
+            msgEl.textContent = "Telefon invalid (doar cifre, 9–15 caractere).";
+            msgEl.hidden = false;
+            return;
+          }
+
+          addRow({ name, phone });
+
+          form.reset();
+          nameEl.focus();
+        };
+      };
+    </script>
+  </body>
+</html>

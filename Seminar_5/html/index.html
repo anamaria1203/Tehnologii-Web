@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ro">
+  <head>
+    <meta charset="utf-8" />
+    <title>DOM + Eveniment custom</title>
+    <style>
+      body {
+        font: 16px/1.4 system-ui, sans-serif;
+        padding: 24px;
+      }
+      #inc {
+        padding: 8px 12px;
+        margin-right: 12px;
+      }
+      #status {
+        margin-top: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Demo evenimente</h1>
+
+    <button id="inc">+1</button>
+    <input id="name" placeholder="scrie numele..." />
+
+    <p id="status">Clicks: 0</p>
+
+    <script>
+      (() => {
+        const btn = document.getElementById("inc");
+        const nameInput = document.getElementById("name");
+        const status = document.getElementById("status");
+
+        let clicks = 0;
+
+        btn.addEventListener("click", () => {
+          clicks++;
+          status.textContent = `Clicks: ${clicks}`;
+
+          const ev = new CustomEvent("counter:changed", {
+            bubbles: true,
+            detail: {
+              clicks,
+              source: "button",
+              time: new Date().toISOString(),
+            },
+          });
+          btn.dispatchEvent(ev);
+        });
+
+        document.addEventListener("counter:changed", (e) => {
+          console.log("custom «counter:changed»", e.detail);
+          status.insertAdjacentHTML(
+            "beforeend",
+            ` • custom=${e.detail.clicks}`
+          );
+        });
+
+        nameInput.addEventListener("input", () => {
+          const hello = new CustomEvent("hello", {
+            detail: { name: nameInput.value },
+          });
+          nameInput.dispatchEvent(hello);
+        });
+
+        document.addEventListener("hello", (e) => {
+          const name = e.detail.name?.trim();
+          status.textContent = `Clicks: ${clicks} — Hello, ${
+            name || "stranger"
+          }!`;
+        });
+      })();
+    </script>
+  </body>
+</html>
