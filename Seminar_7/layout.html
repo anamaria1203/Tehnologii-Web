@@ -1,0 +1,42 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flexbox Form</title>
+    <link rel="stylesheet" href="flex-form.css" />
+  </head>
+  <body>
+    <h1>Contact Form (3 Columns Layout)</h1>
+    <div class="form-container">
+      <div class="column">
+        <label>First Name</label>
+        <input type="text" placeholder="John" />
+        <label>Email</label>
+        <input type="email" placeholder="example@mail.com" />
+      </div>
+      <div class="column">
+        <label>Last Name</label>
+        <input type="text" placeholder="Doe" />
+        <label>Phone</label>
+        <input type="text" placeholder="+40..." />
+      </div>
+      <div class="column">
+        <label>Message</label>
+        <textarea placeholder="Write something..."></textarea>
+        <button type="submit">Submit</button>
+      </div>
+    </div>
+  </body>
+</html>
+body { font-family: Arial, sans-serif; background-color: #f7f7f7; margin: 20px;
+} h1 { text-align: center; color: #333; } .form-container { display: flex;
+justify-content: space-between; gap: 20px; } .column { display: flex;
+flex-direction: column; background: white; border: 1px solid #ccc;
+border-radius: 8px; padding: 20px; flex: 1; } label { font-weight: bold;
+margin-top: 10px; } input, textarea { margin-top: 5px; padding: 10px; border:
+1px solid #ccc; border-radius: 4px; font-size: 14px; } textarea { resize:
+vertical; height: 100px; } button { margin-top: 15px; padding: 10px; border:
+none; background-color: #04AA6D; color: white; font-size: 16px; border-radius:
+4px; cursor: pointer; } button:hover { background-color: #038f5b; } input:hover,
+textarea:hover { border-color: #04AA6D; box-shadow: 0 0 5px rgba(4,170,109,0.4);
+}
