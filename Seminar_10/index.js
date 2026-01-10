@@ -1,16 +1,12 @@
-// Express Initialisation
 const express = require("express");
 const app = express();
 const port = 3000;
 
-// Sequelize Initialisation
 const sequelize = require("./sequelize");
 
-// Import created models
 const University = require("./models/university");
 const Student = require("./models/student");
 
-// Express middleware
 app.use(
   express.urlencoded({
     extended: true,
@@ -18,24 +14,17 @@ app.use(
 );
 app.use(express.json());
 
-// Define the model relationship.
 University.hasMany(Student);
 
-// Kickstart the Express aplication
 app.listen(port, () => {
   console.log("The server is running on http://localhost:" + port);
 });
 
-// Create a middleware to handle 500 status errors.
 app.use((err, req, res, next) => {
   console.error("[ERROR]:" + err);
   res.status(500).json({ message: "500 - Server Error" });
 });
 
-/**
- * Create a special GET endpoint so that when it is called it will
- * sync our database with the models.
- */
 app.get("/create", async (req, res, next) => {
   try {
     await sequelize.sync({ force: true });
@@ -45,9 +34,6 @@ app.get("/create", async (req, res, next) => {
   }
 });
 
-/**
- * GET all the universities from the database.
- */
 app.get("/universities", async (req, res, next) => {
   try {
     const universities = await University.findAll();
@@ -57,9 +43,6 @@ app.get("/universities", async (req, res, next) => {
   }
 });
 
-/**
- * POST a new university to the database.
- */
 app.post("/university", async (req, res, next) => {
   try {
     await University.create(req.body);
@@ -69,9 +52,6 @@ app.post("/university", async (req, res, next) => {
   }
 });
 
-/**
- * GET all students.
- */
 app.get("/students", async (req, res, next) => {
   try {
     const students = await Student.findAll();
@@ -81,9 +61,6 @@ app.get("/students", async (req, res, next) => {
   }
 });
 
-/**
- * POST a new student into a university.
- */
 app.post("/universities/:universityId/students", async (req, res, next) => {
   try {
     const university = await University.findByPk(req.params.universityId);
@@ -91,7 +68,7 @@ app.post("/universities/:universityId/students", async (req, res, next) => {
       const student = new Student(req.body);
       student.universityId = university.id;
       await student.save();
-      res.status(201).json({ message: "Student crated!" });
+      res.status(201).json({ message: "Student created!" });
     } else {
       res.status(404).json({ message: "404 - University Not Found" });
     }
@@ -100,16 +77,13 @@ app.post("/universities/:universityId/students", async (req, res, next) => {
   }
 });
 
-/**
- * GET all the students from a university using include.
- */
 app.get("/universities/:universityId/students", async (req, res, next) => {
   try {
-    const university = await University.findByPk(req.params.universityId, {
-      include: [Student],
-    });
+    const university = await University.findByPk(req.params.universityId);
+
     if (university) {
-      res.status(200).json(university.students);
+      const students = await university.getStudents();
+      res.status(200).json(students);
     } else {
       res.status(404).json({ message: "404 - University Not Found!" });
     }
@@ -118,19 +92,16 @@ app.get("/universities/:universityId/students", async (req, res, next) => {
   }
 });
 
-/**
- * PUT in order to update a student from a university.
- */
 app.put(
   "/universities/:universityId/students/:studentId",
   async (req, res, next) => {
     try {
       const university = await University.findByPk(req.params.universityId);
       if (university) {
-        const stundents = await university.getStudents({
-          id: req.params.studentId,
+        const students = await university.getStudents({
+          where: { id: req.params.studentId },
         });
-        const student = stundents.shift();
+        const student = students.shift();
         if (student) {
           student.studentFullName = req.body.fullName;
           student.studentStatus = req.body.status;
