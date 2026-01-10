@@ -26,6 +26,27 @@ application.use((error, request, response, next) => {
   response.status(500).json(error);
 });
 
+application.get("/export", async (request, response, next) => {
+  try {
+    const result = await University.findAll({
+      include: [
+        {
+          model: Student,
+          attributes: ["id", "studentFullName", "studentStatus"],
+        },
+      ],
+    });
+
+    if (result.length > 0) {
+      response.json(result);
+    } else {
+      response.sendStatus(204);
+    }
+  } catch (error) {
+    next(error);
+  }
+});
+
 application.put("/", async (request, response, next) => {
   try {
     await sequelize.sync({ force: true });
@@ -96,38 +117,6 @@ application.post(
   }
 );
 
-application.get(
-  "/universities/:universityId/students/:studentId/enrollements",
-  async (request, response, next) => {
-    try {
-      const university = await University.findByPk(request.params.universityId);
-      if (university) {
-        const students = await university.getStudents({
-          where: { id: request.params.studentId },
-        });
-        const student = students.shift();
-
-        if (student) {
-          response.json({
-            student: student.studentFullName,
-            enrolledAt: university.universityName,
-            status: student.studentStatus,
-            message: "Informații înrolare găsite.",
-          });
-        } else {
-          response
-            .status(404)
-            .json({ message: "Studentul nu aparține de această universitate" });
-        }
-      } else {
-        response.sendStatus(404);
-      }
-    } catch (error) {
-      next(error);
-    }
-  }
-);
-
 application.delete(
   "/universities/:universityId/students/:studentId",
   async (request, response, next) => {
@@ -140,6 +129,31 @@ application.delete(
         const student = students.shift();
         if (student) {
           await student.destroy();
+          response.sendStatus(204);
+        } else {
+          response.sendStatus(404);
+        }
+      } else {
+        response.sendStatus(404);
+      }
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+application.put(
+  "/universities/:universityId/students/:studentId",
+  async (request, response, next) => {
+    try {
+      const university = await University.findByPk(request.params.universityId);
+      if (university) {
+        const students = await university.getStudents({
+          where: { id: request.params.studentId },
+        });
+        const student = students.shift();
+        if (student) {
+          await student.update(request.body);
           response.sendStatus(204);
         } else {
           response.sendStatus(404);
