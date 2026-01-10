@@ -1,106 +1,76 @@
 const express = require("express");
-const app = express();
-const port = 3000;
+const application = express();
+const port = process.env.PORT || 8080;
 
 const sequelize = require("./sequelize");
 
 const University = require("./models/university");
 const Student = require("./models/student");
 
-app.use(
+University.hasMany(Student);
+Student.belongsTo(University);
+
+application.use(
   express.urlencoded({
     extended: true,
   })
 );
-app.use(express.json());
-University.hasMany(Student);
-Student.belongsTo(University);
+application.use(express.json());
 
-app.listen(port, () => {
-  console.log("The server is running on http://localhost:" + port);
+application.listen(port, () => {
+  console.log(`The server is running on http://localhost:${port}.`);
 });
 
-app.use((err, req, res, next) => {
-  console.error("[ERROR]:" + err);
-  res.status(500).json({ message: "500 - Server Error" });
+application.use((error, request, response, next) => {
+  console.error(`[ERROR]: ${error}`);
+  response.status(500).json(error);
 });
 
-app.get("/create", async (req, res, next) => {
+application.put("/", async (request, response, next) => {
   try {
     await sequelize.sync({ force: true });
-    res.status(201).json({ message: "Database created with the models." });
-  } catch (err) {
-    next(err);
+    response.sendStatus(204);
+  } catch (error) {
+    next(error);
   }
 });
 
-app.get("/universities", async (req, res, next) => {
+application.get("/universities", async (request, response, next) => {
   try {
     const universities = await University.findAll();
-    res.status(200).json(universities);
-  } catch (err) {
-    next(err);
-  }
-});
-
-app.post("/university", async (req, res, next) => {
-  try {
-    await University.create(req.body);
-    res.status(201).json({ message: "University Created!" });
-  } catch (err) {
-    next(err);
-  }
-});
-
-app.post("/universities/:universityId/students", async (req, res, next) => {
-  try {
-    const university = await University.findByPk(req.params.universityId);
-    if (university) {
-      const student = new Student(req.body);
-      student.universityId = university.id;
-      await student.save();
-      res.status(201).json({ message: "Student created!" });
+    if (universities.length > 0) {
+      response.json(universities);
     } else {
-      res.status(404).json({ message: "404 - University Not Found" });
+      response.sendStatus(204);
     }
   } catch (error) {
     next(error);
   }
 });
 
-app.get("/universities/:universityId/students", async (req, res, next) => {
+application.post("/universities", async (request, response, next) => {
   try {
-    const university = await University.findByPk(req.params.universityId);
-    if (university) {
-      const students = await university.getStudents();
-      res.status(200).json(students);
-    } else {
-      res.status(404).json({ message: "404 - University Not Found!" });
-    }
+    const university = await University.create(request.body);
+    response.status(201).location(university.id).send();
   } catch (error) {
     next(error);
   }
 });
 
-app.get(
-  "/universities/:universityId/students/:studentId",
-  async (req, res, next) => {
+application.get(
+  "/universities/:universityId/students",
+  async (request, response, next) => {
     try {
-      const university = await University.findByPk(req.params.universityId);
+      const university = await University.findByPk(request.params.universityId);
       if (university) {
-        const students = await university.getStudents({
-          where: { id: req.params.studentId },
-        });
-        const student = students.shift();
-        if (student) {
-          res.status(200).json(student);
+        const students = await university.getStudents();
+        if (students.length > 0) {
+          response.json(students);
         } else {
-          res
-            .status(404)
-            .json({ message: "404 - Student Not Found in this University!" });
+          response.sendStatus(204);
         }
       } else {
-        res.status(404).json({ message: "404 - University Not Found!" });
+        response.sendStatus(404);
       }
     } catch (error) {
       next(error);
@@ -108,51 +78,74 @@ app.get(
   }
 );
 
-app.delete(
-  "/universities/:universityId/students/:studentId",
-  async (req, res, next) => {
+application.post(
+  "/universities/:universityId/students",
+  async (request, response, next) => {
     try {
-      const university = await University.findByPk(req.params.universityId);
+      const university = await University.findByPk(request.params.universityId);
+      if (university) {
+        const student = await Student.create(request.body);
+        await university.addStudent(student);
+        response.status(201).location(student.id).send();
+      } else {
+        response.sendStatus(404);
+      }
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+application.get(
+  "/universities/:universityId/students/:studentId/enrollements",
+  async (request, response, next) => {
+    try {
+      const university = await University.findByPk(request.params.universityId);
       if (university) {
         const students = await university.getStudents({
-          where: { id: req.params.studentId },
+          where: { id: request.params.studentId },
+        });
+        const student = students.shift();
+
+        if (student) {
+          response.json({
+            student: student.studentFullName,
+            enrolledAt: university.universityName,
+            status: student.studentStatus,
+            message: "Informații înrolare găsite.",
+          });
+        } else {
+          response
+            .status(404)
+            .json({ message: "Studentul nu aparține de această universitate" });
+        }
+      } else {
+        response.sendStatus(404);
+      }
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+application.delete(
+  "/universities/:universityId/students/:studentId",
+  async (request, response, next) => {
+    try {
+      const university = await University.findByPk(request.params.universityId);
+      if (university) {
+        const students = await university.getStudents({
+          where: { id: request.params.studentId },
         });
         const student = students.shift();
         if (student) {
           await student.destroy();
-          res.status(202).json({ message: "Student deleted!" });
+          response.sendStatus(204);
         } else {
-          res.status(404).json({ message: "404 - Student Not Found!" });
+          response.sendStatus(404);
         }
       } else {
-        res.status(404).json({ message: "404 - University Not Found!" });
-      }
-    } catch (error) {
-      next(error);
-    }
-  }
-);
-
-app.put(
-  "/universities/:universityId/students/:studentId",
-  async (req, res, next) => {
-    try {
-      const university = await University.findByPk(req.params.universityId);
-      if (university) {
-        const students = await university.getStudents({
-          where: { id: req.params.studentId },
-        });
-        const student = students.shift();
-        if (student) {
-          student.studentFullName = req.body.fullName;
-          student.studentStatus = req.body.status;
-          await student.save();
-          res.status(202).json({ message: "Student updated!" });
-        } else {
-          res.status(404).json({ message: "404 - Student Not Found!" });
-        }
-      } else {
-        res.status(404).json({ message: "404 - University Not Found!" });
+        response.sendStatus(404);
       }
     } catch (error) {
       next(error);
