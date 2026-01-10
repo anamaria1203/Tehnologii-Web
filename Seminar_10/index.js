@@ -13,8 +13,8 @@ app.use(
   })
 );
 app.use(express.json());
-
 University.hasMany(Student);
+Student.belongsTo(University);
 
 app.listen(port, () => {
   console.log("The server is running on http://localhost:" + port);
@@ -47,15 +47,6 @@ app.post("/university", async (req, res, next) => {
   try {
     await University.create(req.body);
     res.status(201).json({ message: "University Created!" });
-  } catch (err) {
-    next(err);
-  }
-});
-
-app.get("/students", async (req, res, next) => {
-  try {
-    const students = await Student.findAll();
-    res.status(200).json(students);
   } catch (err) {
     next(err);
   }
@@ -107,6 +98,31 @@ app.get(
           res
             .status(404)
             .json({ message: "404 - Student Not Found in this University!" });
+        }
+      } else {
+        res.status(404).json({ message: "404 - University Not Found!" });
+      }
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+app.delete(
+  "/universities/:universityId/students/:studentId",
+  async (req, res, next) => {
+    try {
+      const university = await University.findByPk(req.params.universityId);
+      if (university) {
+        const students = await university.getStudents({
+          where: { id: req.params.studentId },
+        });
+        const student = students.shift();
+        if (student) {
+          await student.destroy();
+          res.status(202).json({ message: "Student deleted!" });
+        } else {
+          res.status(404).json({ message: "404 - Student Not Found!" });
         }
       } else {
         res.status(404).json({ message: "404 - University Not Found!" });
