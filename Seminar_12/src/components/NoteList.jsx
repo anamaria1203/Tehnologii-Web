@@ -11,23 +11,22 @@ const NoteList = (props) => {
 
   return (
     <div style={{ padding: "20px" }}>
-      <div>
-        <h3>List of notes</h3>
-        {notes.map((e, i) => (
-          <div
-            key={i}
-            style={{ marginBottom: "10px", borderBottom: "1px solid #ccc" }}
+      <h3>List of notes (Server Synced)</h3>
+      {notes.map((note) => (
+        <div
+          key={note.id}
+          style={{ marginBottom: "10px", display: "flex", gap: "10px" }}
+        >
+          <span>{note.content || note}</span>
+          <button
+            onClick={() => dispatch(deleteNote(note.id))}
+            style={{ color: "red", cursor: "pointer" }}
           >
-            <span>{e}</span>
-            <button
-              onClick={() => dispatch(deleteNote(i))}
-              style={{ marginLeft: "10px", color: "red", cursor: "pointer" }}
-            >
-              Delete
-            </button>
-          </div>
-        ))}
-      </div>
+            Delete from Server
+          </button>
+        </div>
+      ))}
+
       <div style={{ marginTop: "20px" }}>
         <h3>Add a note</h3>
         <input
@@ -35,11 +34,7 @@ const NoteList = (props) => {
           placeholder="note content"
           onChange={(evt) => setContent(evt.target.value)}
         />
-        <input
-          type="button"
-          value="Add Note"
-          onClick={() => dispatch(addNote(content))}
-        />
+        <button onClick={() => dispatch(addNote(content))}>Add</button>
       </div>
     </div>
   );

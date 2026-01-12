@@ -10,7 +10,7 @@ export default function reducer(state = INITIAL_STATE, action) {
     case "DELETE_NOTE":
       return {
         ...state,
-        notes: state.notes.filter((_, index) => index !== action.payload),
+        notes: state.notes.filter((note) => note.id !== action.payload),
       };
 
     default:
