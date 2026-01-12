@@ -6,7 +6,7 @@ const About = () => {
   return (
     <div style={{ padding: "20px" }}>
       <h1>About Page</h1>
-      <p>Aceasta este componenta nou creată pentru tema de astăzi.</p>
+      <p>Această componentă a fost creată pentru ruta /about.</p>
       <button onClick={() => navigate("/")}>Înapoi la Home</button>
     </div>
   );
